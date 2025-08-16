@@ -1,9 +1,9 @@
 "use client"
 
 import { useEffect, useState } from "react";
-import { Post } from "../../../types/Post";
-import { API_URL } from "@/constans";
 import { PostsItem } from "./PostItem";
+import { Post } from "@/app/_types/Post";
+import { API_URL } from "@/constants";
 
 export const  Posts: React.FC = () => {
   const [posts, setPosts] = useState<Post[]>([]);

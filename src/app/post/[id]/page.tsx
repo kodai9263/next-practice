@@ -1,13 +1,12 @@
 'use client'
 
 import { useParams } from "next/navigation";
-import classes from "../../../styles/PostDetail.module.css";
+import classes from "../../_styles/PostDetail.module.css";
 import { useEffect, useState } from "react";
-import { API_URL } from "@/constans";
-import { Post } from "@/types/Post";
-import { FormatDate } from "../_components/FormDate";
+import { FormatDate } from "../_components/FormatDate";
 import { Categories } from "../_components/Categories";
-
+import { Post } from "@/app/_types/Post";
+import { API_URL } from "@/constants";
 
 export default function Page() {
 

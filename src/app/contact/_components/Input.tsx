@@ -1,7 +1,7 @@
 'use client'
 
 import { FieldError, UseFormRegister, Path } from "react-hook-form";
-import classes from "../../../styles/Input.module.css"
+import classes from "../../_styles/Input.module.css"
 import { ContactForm } from "../page";
 
 export type InputProps = {

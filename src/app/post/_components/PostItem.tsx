@@ -1,10 +1,10 @@
 "use client"
 
 import Link from "next/link";
-import classes from '../../../styles/PostItem.module.css';
-import { Post } from "@/types/Post";
-import { FormatDate } from "./FormDate";
+import classes from '../../_styles/PostItem.module.css';
+import { FormatDate } from "./FormatDate";
 import { Categories } from "./Categories";
+import { Post } from "@/app/_types/Post";
 
 
 export const PostsItem: React.FC<{post: Post}> = ({ post }) => {

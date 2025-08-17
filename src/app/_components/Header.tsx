@@ -1,5 +1,5 @@
 import Link from "next/link";
-import classes from "../../styles/Header.module.css";
+import classes from "../_styles/Header.module.css";
 
 export const Header: React.FC = () => {
   return (

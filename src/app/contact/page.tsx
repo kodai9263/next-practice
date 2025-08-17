@@ -3,10 +3,10 @@
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup"
-import { API_URL } from "@/constans";
+import { API_URL } from "@/constants";
 import { Textarea } from "./_components/Textarea";
 import { Input } from "./_components/Input";
-import classes from "../../styles/Form.module.css";
+import classes from "../_styles/Form.module.css";
 
 export type ContactForm = {
   name: string;

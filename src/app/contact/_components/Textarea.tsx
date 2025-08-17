@@ -1,7 +1,7 @@
 'use client'
 
 import { FieldError, UseFormRegister, Path } from "react-hook-form";
-import classes from "../../../styles/Textarea.module.css";
+import classes from "../../_styles/Textarea.module.css";
 import { ContactForm } from "../page";
 
 export type TextareaProps = {

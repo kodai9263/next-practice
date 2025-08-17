@@ -1,6 +1,6 @@
 'use client'
 
-import classes from '../../../styles/Categories.module.css';
+import classes from '../../_styles/Categories.module.css';
 
 export type Category = {
   name: string;

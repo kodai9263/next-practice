@@ -4,10 +4,10 @@ import Link from "next/link";
 import classes from '../../_styles/PostItem.module.css';
 import { FormatDate } from "./FormatDate";
 import { Categories } from "./Categories";
-import { Post } from "@/app/_types/Post";
+import { MicroCmsPost, Post } from "@/app/_types/Post";
 
 
-export const PostsItem: React.FC<{post: Post}> = ({ post }) => {
+export const PostsItem: React.FC<{post: MicroCmsPost}> = ({ post }) => {
 
   return (
     <>
@@ -15,7 +15,7 @@ export const PostsItem: React.FC<{post: Post}> = ({ post }) => {
         <div className={classes.container}>
         <header className={classes.postHeader}>
           <FormatDate date={post.createdAt} />
-          <Categories categories={post.categories} />
+          <Categories categories={post.categories.map(category => category.name)} />
         </header>
         <h1 className={classes.postTitle}>APIで取得した{post.title}</h1>
         <div className={classes.postContent} dangerouslySetInnerHTML={{ __html: post.content }}></div>

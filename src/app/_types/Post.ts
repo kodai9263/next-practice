@@ -3,7 +3,12 @@ export interface Post {
   title: string
   content: string
   createdAt: string
-  categories: string[]
+  postCategories: {
+    category: {
+      id: number
+      name: string
+    }
+  }[]
   thumbnailUrl: string
 }
 export interface MicroCmsPost {

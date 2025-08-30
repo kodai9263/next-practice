@@ -6,27 +6,39 @@ import { useRouter } from "next/navigation"
 
 export default function Page() {
   const [name, setName] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setIsSubmitting(true)
 
     // POSTリクエストでカテゴリーを作成
-    const res = await fetch("/api/admin/categories", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ name }),
-    })
+    try {
+      const res = await fetch("/api/admin/categories", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name }),
+      })
 
-    // レスポンスから作成したカテゴリーのIDを取得
-    const { id } = await res.json()
+      if (!res.ok) {
+        throw new Error("作成に失敗しました。")
+      }
+      // レスポンスから作成したカテゴリーのIDを取得
+      const { id } = await res.json()
 
-    // 作成したカテゴリーの詳細ページに遷移
-    router.push(`/admin/categories/${id}`)
+      // 作成したカテゴリーの詳細ページに遷移
+      router.push(`/admin/categories/${id}`)
 
-    alert("カテゴリーを作成しました。")
+      alert("カテゴリーを作成しました。")
+    } catch (e: any) {
+      console.log(e)
+      alert("作成中にエラーが発生しました。")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -40,8 +52,8 @@ export default function Page() {
         name={name}
         setName={setName}
         onSubmit={handleSubmit}
+        isSubmitting={isSubmitting}
       />
     </div>
-    
   )
 }

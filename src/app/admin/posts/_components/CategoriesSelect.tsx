@@ -5,11 +5,13 @@ import React, { useEffect } from "react";
 interface Props {
   selectedCategories: Category[]
   setSelectedCategories: (categories: Category[]) => void
+  disabled?: boolean
 }
 
 export const CategoriesSelect: React.FC<Props> = ({
   selectedCategories,     // 親から渡される現在選択中のカテゴリ
   setSelectedCategories,  // 選択状態を更新するための関数
+  disabled = false,
 }) => {
   const [categories, setCategories] = React.useState<Category[]>([])
 
@@ -46,6 +48,7 @@ export const CategoriesSelect: React.FC<Props> = ({
       multiple
       value={selectedCategories}
       onChange={(e) => handleChange((e.target.value as unknown) as number[])}
+      disabled={disabled}
       input={<OutlinedInput />}
       renderValue={(selected: Category[]) => (
         <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>

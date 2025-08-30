@@ -5,8 +5,8 @@ import classes from "../../_styles/PostDetail.module.css";
 import { useEffect, useState } from "react";
 import { FormatDate } from "../_components/FormatDate";
 import { Categories } from "../_components/Categories";
-import { MicroCmsPost } from "@/app/_types/Post";
 import Image from "next/image";
+import { Post } from "@/app/_types/Post";
 
 export default function Page() {
 
@@ -14,26 +14,20 @@ export default function Page() {
   const { id } = useParams<{ id: string }>();
 
   // APIでpost詳細を取得
-  const [post, setPost] = useState<MicroCmsPost | null>(null);
+  const [post, setPost] = useState<Post | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetcher = async () => {
       try {
-        const res = await fetch(
-          `https://kbg0qm7d0c.microcms.io/api/v1/posts/${id}`,
-          {
-            headers: {
-              'X-MICROCMS-API-KEY': process.env.NEXT_PUBLIC_MICROCMS_API_KEY as string,
-            },
-          },
-        )
+        const res = await fetch(`/api/posts/${id}`)
+
         if (!res.ok) {
           throw new Error("記事が見つかりませんでした。");
         }
-        const data = await res.json();
-        setPost(data);
+        const { post } = await res.json();
+        setPost(post);
       } catch (e: any) {
         setError(e.message);
       } finally {
@@ -59,10 +53,10 @@ export default function Page() {
   return (
     <>
       <div className={classes.container}>
-        <Image src={post.thumbnail.url} alt="" height={500} width={800} />
+          <Image src={post.thumbnailUrl} alt="" height={500} width={800} />
         <div className={classes.dateCategoryContainer}>
           <FormatDate date={post.createdAt}/>
-          <Categories categories={post.categories.map(category => category.name)}/>
+          <Categories categories={post.postCategories.map(pc => pc.category.name)}/>
         </div>
         <h1 className={classes.postTitle}>APIで取得した{post.title}</h1>
         <div dangerouslySetInnerHTML={{ __html: post.content }}></div>

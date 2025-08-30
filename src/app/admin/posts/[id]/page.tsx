@@ -11,37 +11,60 @@ export default function Page() {
   const [content, setContent] = useState("")
   const [thumbnailUrl, setThumbnailUrl] = useState("")
   const [categories, setCategories] = useState<Category[]>([])
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const { id } = useParams()
   const router = useRouter()
 
   const handleSubmit = async (e:React.FormEvent) => {
     // 勝手にリロードされないようにする
     e.preventDefault()
+    setIsSubmitting(true)
   
     // PUTリクエストで記事を更新
-    await fetch(`/api/admin/posts/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json", // ← JSONデータであることを明示
-      },
-      body: JSON.stringify({ title, content, thumbnailUrl, categories }),
-    })
+    try {
+      const res = await fetch(`/api/admin/posts/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json", // ← JSONデータであることを明示
+        },
+        body: JSON.stringify({ title, content, thumbnailUrl, categories }),
+      })
 
-    alert("記事を更新しました。")
+      if (!res.ok) {
+        throw new Error("更新に失敗しました。")
+      }
+      alert("記事を更新しました。")
+    } catch (e: any) {
+      console.log(e)
+      alert("更新中にエラーが発生しました。")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   // DELETEリクエストで記事を削除
   const handleDeletePost = async  () => {
     if (!confirm("記事を削除しますか？")) return
+    setIsSubmitting(true)
 
-    await fetch(`/api/admin/posts/${id}`, {
-      method: "DELETE",
-    })
+    try {
+      const res = await fetch(`/api/admin/posts/${id}`, {
+        method: "DELETE",
+      })
 
-    alert("記事を削除しました。")
+      if (!res.ok) {
+        throw new Error("削除に失敗しました。")
+      }
+      alert("記事を削除しました。")
 
-    // 記事一覧ページに遷移
-    router.push("/admin/posts")
+      // 記事一覧ページに遷移
+    router.replace("/admin/posts")
+    } catch (e: any) {
+      console.log(e)
+      alert("削除中にエラーが発生しました。")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   // 更新の際に既存のデータを表示する
@@ -77,6 +100,7 @@ export default function Page() {
         setCategories={setCategories}
         onSubmit={handleSubmit}
         onDelete={handleDeletePost}
+        isSubmitting={isSubmitting}
       />
     </div>    
   )

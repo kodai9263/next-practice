@@ -7,37 +7,60 @@ import { CategoryForm } from "../_components/CategoryForm"
 
 export default function Page() {
   const [name, setName] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const { id } = useParams()
   const router = useRouter()
 
   const handleSubmit = async (e:React.FormEvent) => {
     // 勝手にリロードされないようにする
     e.preventDefault()
+    setIsSubmitting(true)
 
     // PUTリクエストでカテゴリーを更新
-    await fetch(`/api/admin/categories/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ name }),
-    })
-    
-    alert("カテゴリーを更新しました。")
-  }
+    try {
+      const res = await fetch(`/api/admin/categories/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name }),
+      })
+
+      if (!res.ok) {
+        throw new Error("更新に失敗しました。")
+      }
+      alert("カテゴリーを更新しました。")
+    } catch (e : any) {
+      console.log(e)
+      alert("更新中にエラーが発生しました。")
+    } finally {
+      setIsSubmitting(false)
+    }
+  } 
 
   // DELETEリクエストでカテゴリーを削除
   const handleDeleteCategory = async () => {
     if (!confirm("カテゴリーを削除しますか？")) return
+    setIsSubmitting(true)
 
-    await fetch(`/api/admin/categories/${id}`, {
-      method: "DELETE",
-    })
+    try {
+      const res = await fetch(`/api/admin/categories/${id}`,{
+        method: "DELETE",
+      })
 
-    alert("カテゴリーを削除しました。")
+      if (!res.ok) {
+        throw new Error("削除に失敗しました。")
+      }
+      alert("カテゴリーを削除しました。")
 
-    // カテゴリー一覧ページに遷移
-    router.push("/admin/categories")
+      // カテゴリー一覧ページに遷移
+      router.push("/admin/categories")
+    } catch (e: any) {
+      console.log(e)
+      alert("削除中にエラーが発生しました。")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   // 更新の際に既存のデータを表示する
@@ -63,8 +86,8 @@ export default function Page() {
         setName={setName}
         onSubmit={handleSubmit}
         onDelete={handleDeleteCategory}
+        isSubmitting={isSubmitting}
       />
     </div>
   )
-
 }

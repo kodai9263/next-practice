@@ -10,28 +10,41 @@ export default function Page() {
   const [content, setContent] = useState("")
   const [thumbnailUrl, setThumbnailUrl] = useState("https://placehold.jp/800x400.png")
   const [categories, setCategories] = useState<Category[]>([])
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     // 勝手にリロードされないようにする
     e.preventDefault()
+    setIsSubmitting(true)
 
     // POSTリクエストで記事を作成
-    const res = await fetch("/api/admin/posts", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json", // ← JSONデータであることを明示
-      },
-      body: JSON.stringify({ title, content, thumbnailUrl, categories }),
-    })
+    try {
+      const res = await fetch("/api/admin/posts", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json", // ← JSONデータであることを明示
+        },
+        body: JSON.stringify({ title, content, thumbnailUrl, categories }),
+      })
 
-    // レスポンスから作成した記事のIDを取得
-    const { id } = await res.json()
+      if (!res.ok) {
+        throw new Error("作成に失敗しました。")
+      }
 
-    // 作成した記事の詳細ページに遷移
-    router.push(`/admin/posts/${id}`)
+      // レスポンスから作成したカテゴリーのIDを取得
+      const { id } = await res.json()
 
-    alert("記事を作成しました。")
+      // 作成したカテゴリーの詳細ページに遷移
+      router.push(`/admin/posts/${id}`)
+
+      alert("記事を作成しました。")
+    } catch (e: any) {
+      console.log(e)
+      alert("作成中にエラーが発生しました。")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -51,6 +64,7 @@ export default function Page() {
         categories={categories}
         setCategories={setCategories}
         onSubmit={handleSubmit}
+        isSubmitting={isSubmitting}
       />
     </div> 
   )

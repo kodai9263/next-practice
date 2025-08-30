@@ -2,29 +2,22 @@
 
 import { useEffect, useState } from "react";
 import { PostsItem } from "./PostItem";
-import { MicroCmsPost, Post } from "@/app/_types/Post";
+import { Post } from "@/app/_types/Post";
 
 export const  Posts: React.FC = () => {
-  const [posts, setPosts] = useState<MicroCmsPost[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetcher = async () => {
       try {
-        const res = await fetch(
-          'https://kbg0qm7d0c.microcms.io/api/v1/posts', 
-          {
-            headers: {
-              'X-MICROCMS-API-KEY': process.env.NEXT_PUBLIC_MICROCMS_API_KEY as string,
-            },
-          },
-        )
+        const res = await fetch("/api/posts")
         if (!res.ok) {
           throw new Error("データが見つかりません。");
         }
-        const { contents } = await res.json();
-        setPosts(contents);
+        const { posts } = await res.json();
+        setPosts(posts);
       } catch (e: any) {
         setError(e.message);
       } finally {
@@ -49,7 +42,7 @@ export const  Posts: React.FC = () => {
 
   return (
     <dl>
-      {posts.map((elem: MicroCmsPost) => 
+      {posts.map((elem: Post) => 
         <PostsItem post={elem} key={elem.id} />
       )}
     </dl>

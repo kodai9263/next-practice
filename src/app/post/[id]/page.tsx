@@ -5,8 +5,8 @@ import classes from "../../_styles/PostDetail.module.css";
 import { useEffect, useState } from "react";
 import { FormatDate } from "../_components/FormatDate";
 import { Categories } from "../_components/Categories";
+import Image from "next/image";
 import { Post } from "@/app/_types/Post";
-import { API_URL } from "@/constants";
 
 export default function Page() {
 
@@ -21,12 +21,13 @@ export default function Page() {
   useEffect(() => {
     const fetcher = async () => {
       try {
-        const res = await fetch(`${API_URL}/posts/${id}`);
+        const res = await fetch(`/api/posts/${id}`)
+
         if (!res.ok) {
           throw new Error("記事が見つかりませんでした。");
         }
-        const data = await res.json();
-        setPost(data.post);
+        const { post } = await res.json();
+        setPost(post);
       } catch (e: any) {
         setError(e.message);
       } finally {
@@ -52,10 +53,10 @@ export default function Page() {
   return (
     <>
       <div className={classes.container}>
-        <img src={post.thumbnailUrl}/>
+          <Image src={post.thumbnailUrl} alt="" height={500} width={800} />
         <div className={classes.dateCategoryContainer}>
           <FormatDate date={post.createdAt}/>
-          <Categories categories={post.categories}/>
+          <Categories categories={post.postCategories.map(pc => pc.category.name)}/>
         </div>
         <h1 className={classes.postTitle}>APIで取得した{post.title}</h1>
         <div dangerouslySetInnerHTML={{ __html: post.content }}></div>

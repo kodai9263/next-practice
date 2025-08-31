@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { PostsItem } from "./PostItem";
 import { Post } from "@/app/_types/Post";
-import { API_URL } from "@/constants";
 
 export const  Posts: React.FC = () => {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -13,12 +12,12 @@ export const  Posts: React.FC = () => {
   useEffect(() => {
     const fetcher = async () => {
       try {
-        const res = await fetch(`${API_URL}/posts`);
+        const res = await fetch("/api/posts")
         if (!res.ok) {
           throw new Error("データが見つかりません。");
         }
-        const date = await res.json();
-        setPosts(date.posts);
+        const { posts } = await res.json();
+        setPosts(posts);
       } catch (e: any) {
         setError(e.message);
       } finally {

@@ -17,7 +17,9 @@ export const PostsItem: React.FC<{post: Post}> = ({ post }) => {
           <FormatDate date={post.createdAt} />
           <Categories categories={post.postCategories.map(pc => pc.category.name)} />
         </header>
-        <h1 className={classes.postTitle}>APIで取得した{post.title}</h1>
+        {post && post.title && (
+          <h1 className={classes.postTitle}>APIで取得した{post.title}</h1>
+        )}
         <div className={classes.postContent} dangerouslySetInnerHTML={{ __html: post.content }}></div>
         </div>
       </Link>

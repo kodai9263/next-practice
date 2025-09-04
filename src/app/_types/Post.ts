@@ -9,7 +9,7 @@ export interface Post {
       name: string
     }
   }[]
-  thumbnailUrl: string
+  thumbnailImageKey: string
 }
 export interface MicroCmsPost {
   id: string

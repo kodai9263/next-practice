@@ -1,5 +1,6 @@
 "use client"
 
+import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession"
 import { Post } from "@/app/_types/Post"
 import Link from "next/link"
 
@@ -9,18 +10,25 @@ export default function Page() {
   const [posts, setPosts] = useState<Post[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-
+  const { token } = useSupabaseSession()
 
   useEffect(() => {
+    if (!token) return
+
     const fetcher = async () => {
       try {
-        const res = await fetch("/api/admin/posts")
+        const res = await fetch("/api/admin/posts", {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: token,
+          },
+        })
 
         if (!res.ok) {
           throw new Error("データが見つかりません。")
         }
         const { posts } = await res.json()
-        setPosts(posts)
+        setPosts([...posts])
       } catch (e: any) {
         setError(e.message)
       } finally {
@@ -29,7 +37,7 @@ export default function Page() {
     }
 
     fetcher()
-  }, [])
+  }, [token])
 
   if (isLoading) {
     return <div>loading...</div>

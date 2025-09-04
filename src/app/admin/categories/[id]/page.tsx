@@ -4,17 +4,20 @@ import { Category } from "@/app/_types/Category"
 import { useParams, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { CategoryForm } from "../_components/CategoryForm"
+import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession"
 
 export default function Page() {
   const [name, setName] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { id } = useParams()
   const router = useRouter()
+  const { token } = useSupabaseSession()
 
   const handleSubmit = async (e:React.FormEvent) => {
     // 勝手にリロードされないようにする
     e.preventDefault()
     setIsSubmitting(true)
+    if (!token) return
 
     // PUTリクエストでカテゴリーを更新
     try {
@@ -22,6 +25,7 @@ export default function Page() {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          Authorization: token,
         },
         body: JSON.stringify({ name }),
       })

@@ -7,6 +7,7 @@ import { FormatDate } from "../_components/FormatDate";
 import { Categories } from "../_components/Categories";
 import Image from "next/image";
 import { Post } from "@/app/_types/Post";
+import { supabase } from "@/utils/supabase";
 
 export default function Page() {
 
@@ -17,6 +18,8 @@ export default function Page() {
   const [post, setPost] = useState<Post | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [thumbnailImageUrl, setThumbnailImageUrl] = useState<null | string>(null)
 
   useEffect(() => {
     const fetcher = async () => {
@@ -38,6 +41,23 @@ export default function Page() {
     fetcher();
   }, [id]);
 
+  // DBに保存しているthumbnailImageKeyを元に、Supabaseから画像のURLを取得する
+  useEffect(() => {
+    if (!post?.thumbnailImageKey) return
+
+    const fetcher = async () => {
+      const {
+        data: { publicUrl },
+      } = await supabase.storage
+        .from("post_thumbnail")
+        .getPublicUrl(post.thumbnailImageKey)
+
+        setThumbnailImageUrl(publicUrl)
+    }
+
+    fetcher()
+  }, [post?.thumbnailImageKey])
+
   if (isLoading) {
     return <div>読み込み中...</div>
   }
@@ -53,12 +73,16 @@ export default function Page() {
   return (
     <>
       <div className={classes.container}>
-          <Image src={post.thumbnailUrl} alt="" height={500} width={800} />
+          {thumbnailImageUrl && (
+            <Image src={thumbnailImageUrl} alt="" height={1000} width={1000}/>
+          )}
         <div className={classes.dateCategoryContainer}>
           <FormatDate date={post.createdAt}/>
           <Categories categories={post.postCategories.map(pc => pc.category.name)}/>
         </div>
-        <h1 className={classes.postTitle}>APIで取得した{post.title}</h1>
+          {post && post.title && (
+            <h1 className={classes.postTitle}>APIで取得した{post.title}</h1>
+          )}
         <div dangerouslySetInnerHTML={{ __html: post.content }}></div>
       </div>
     </>

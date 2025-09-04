@@ -5,20 +5,23 @@ import { Post } from "@/app/_types/Post"
 import { useParams, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { PostForm } from "../_components/PostForm"
+import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession"
 
 export default function Page() {
   const [title, setTitle] = useState("")
   const [content, setContent] = useState("")
-  const [thumbnailUrl, setThumbnailUrl] = useState("")
+  const [thumbnailImageKey, setThumbnailImageKey] = useState("")
   const [categories, setCategories] = useState<Category[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { id } = useParams()
   const router = useRouter()
+  const { token } = useSupabaseSession()
 
   const handleSubmit = async (e:React.FormEvent) => {
     // 勝手にリロードされないようにする
     e.preventDefault()
     setIsSubmitting(true)
+    if (!token) return
   
     // PUTリクエストで記事を更新
     try {
@@ -26,8 +29,9 @@ export default function Page() {
         method: "PUT",
         headers: {
           "Content-Type": "application/json", // ← JSONデータであることを明示
+          Authorization: token,
         },
-        body: JSON.stringify({ title, content, thumbnailUrl, categories }),
+        body: JSON.stringify({ title, content, thumbnailImageKey, categories }),
       })
 
       if (!res.ok) {
@@ -75,7 +79,7 @@ export default function Page() {
       const { post }: { post: Post } = await res.json()
       setTitle(post.title)
       setContent(post.content)
-      setThumbnailUrl(post.thumbnailUrl)
+      setThumbnailImageKey(post.thumbnailImageKey)
       setCategories(post.postCategories.map((pc) => pc.category))
     }
 
@@ -94,8 +98,8 @@ export default function Page() {
         setTitle={setTitle}
         content={content}
         setContent={setContent}
-        thumbnailUrl={thumbnailUrl}
-        setThumbnailUrl={setThumbnailUrl}
+        thumbnailImageKey={thumbnailImageKey}
+        setThumbnailImageKey={setThumbnailImageKey}
         categories={categories}
         setCategories={setCategories}
         onSubmit={handleSubmit}

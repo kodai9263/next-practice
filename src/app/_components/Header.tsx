@@ -1,11 +1,43 @@
+"use client"
+
 import Link from "next/link";
-import classes from "../_styles/Header.module.css";
+import { supabase } from "@/utils/supabase";
+import { useSupabaseSession } from "../_hooks/useSupabaseSession";
 
 export const Header: React.FC = () => {
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    window.location.href = "/"
+  }
+
+  const { session, isLoading } = useSupabaseSession()
+
   return (
-    <header className={classes.header}>
-      <Link href="/" className={classes.headerLink}>Blog</Link>
-      <Link href="/contact" className={classes.headerLink}>お問い合わせ</Link>
+    <header className="bg-gray-800 text-white p-6 font-bold flex justify-between items-center">
+      <Link href="/" className="header-link">
+        Blog
+      </Link>
+      {!isLoading && (
+        <div className="flex items-center gap-4">
+          {session ? (
+            <>
+              <Link href="/admin" className="header-link">
+                管理画面
+              </Link>
+              <button onClick={handleLogout}>ログアウト</button>
+            </>
+          ) : (
+            <>
+              <Link href="/contact" className="header-link">
+                お問い合わせ
+              </Link>
+              <Link href="/login" className="heder-link">
+                ログイン
+              </Link>
+            </>
+          )}
+        </div>
+      )}
     </header>
   );
 }

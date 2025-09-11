@@ -1,3 +1,4 @@
+import { checkAuth } from "@/utils/auth";
 import { PrismaClient } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -7,6 +8,11 @@ export const GET = async (
   request: NextRequest,
   { params }: { params: { id: string } },
 ) => {
+
+  // 認証チェック
+    const authError = await checkAuth(request)
+    if (authError) return authError
+
   const { id } = params
 
   try {
@@ -31,6 +37,10 @@ export const PUT = async (
   request: NextRequest,
   { params }: { params: { id: string }},
 ) => {
+
+  const authError = await checkAuth(request)
+  if (authError) return authError
+
   const { id } = params
 
   const { name }: UpdateCategoryRequestBody = await request.json()
@@ -56,6 +66,10 @@ export const DELETE = async (
   request: NextRequest,
   { params }: { params: { id: string }},
 ) => {
+
+  const authError = await checkAuth(request)
+  if (authError) return authError
+
   const { id } = params
 
   try {

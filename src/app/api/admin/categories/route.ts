@@ -1,3 +1,4 @@
+import { checkAuth } from "@/utils/auth";
 import { PrismaClient } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -5,6 +6,11 @@ const prisma = new PrismaClient()
 
 // カテゴリー一覧表示呼び出し時にこの関数が呼び出される
 export const GET = async (request: NextRequest) => {
+
+  // 認証チェック
+  const authError = await checkAuth(request)
+  if (authError) return authError
+
   try {
     // カテゴリー一覧をDBから取得
     const categories = await prisma.category.findMany({
@@ -30,6 +36,10 @@ interface CreateCategoryRequestBody {
 
 // カテゴリー更新の際にこの関数が呼び出される
 export const POST = async (request: NextRequest) => {
+
+  const authError = await checkAuth(request)
+  if (authError) return authError
+
   try {
     // リクエストbodyを取得
     const body = await request.json()

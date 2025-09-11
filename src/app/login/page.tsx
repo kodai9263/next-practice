@@ -2,19 +2,21 @@
 
 import { supabase } from "@/utils/supabase"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useForm } from "react-hook-form"
 
 export default function Page() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
+  const { register, handleSubmit } = useForm({
+    defaultValues: {
+      email: "",
+      password: ""
+    }
+  })
   const router = useRouter()
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-
+  const onSubmit = async (data: { email: string; password: string }) => {
     const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
+      email: data.email,
+      password: data.password,
     })
 
     if (error) {
@@ -26,7 +28,7 @@ export default function Page() {
 
   return (
     <div className="flex justify-center pt-[240px]">
-      <form onSubmit={handleSubmit} className="space-y-4 w-full max-w-[400px]">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 w-full max-w-[400px]">
         <div>
           <label 
             htmlFor="email"
@@ -34,14 +36,15 @@ export default function Page() {
           >
             メールアドレス
           </label>
-          <input 
+          <input
+            {...register("email", {
+              required: "メールアドレスは必須です"
+            })}
             type="email"
             name="email"
             id="email"
             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
             placeholder="name@company.com"
-            required
-            onChange={(e) => setEmail(e.target.value)}
           />
         </div>
         <div>
@@ -52,13 +55,14 @@ export default function Page() {
             パスワード
           </label>
           <input 
+            {...register("password", {
+              required: "パスワードを入力してください"
+            })}
             type="password"
             name="password"
             id="password"
             placeholder="⚫︎⚫︎⚫︎⚫︎⚫︎⚫︎⚫︎⚫︎"
             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-            required
-            onChange={(e) => setPassword(e.target.value)}
           />
         </div>
 

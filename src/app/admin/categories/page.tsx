@@ -3,28 +3,22 @@
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession"
 import { Category } from "@/app/_types/Category"
 import Link from "next/link"
-import { useEffect, useState } from "react"
+import useSWR from "swr"
+import { fetcher } from "@/utils/fetcher"
 
 export default function Page() {
-  const [categories, setCategories] = useState<Category[]>([])
   const { token } = useSupabaseSession()
 
-  useEffect(() => {
-    if (!token) return
+  // SWRを使用
+  const { data, error, isLoading } = useSWR(
+    token ? ["/api/admin/categories", token] : null,
+    ([url, token]) => fetcher(url, token)
+  )
 
-    const fetcher = async () => {
-      const res = await fetch("/api/admin/categories",{
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: token,
-        },
-      })
-      const { categories } = await res.json()
-      setCategories(categories)
-    }
+  const categories = data?.categories || []
 
-    fetcher()
-  }, [token])
+  if (isLoading) return <div>loading...</div>
+  if (error) return <div>エラーが発生しました。</div>
 
   return (
     <div>
@@ -34,7 +28,7 @@ export default function Page() {
       </div>
 
       <div>
-        {categories.map((category) => {
+        {categories.map((category: Category) => {
           return (
             <Link href={`/admin/categories/${category.id}`} key={category.id}>
               <div className="border-b border-gray-300 p-4 hover:bg-gray-100 cursor-pointer">

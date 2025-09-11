@@ -1,6 +1,9 @@
 import { Category } from "@/app/_types/Category";
 import { Box, Chip, FormControl, MenuItem, OutlinedInput, Select } from "@mui/material";
-import React, { useEffect } from "react";
+import React from "react";
+import useSWR from "swr";
+import { fetcher } from "@/utils/fetcher";
+import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 
 interface Props {
   selectedCategories: Category[]
@@ -13,7 +16,15 @@ export const CategoriesSelect: React.FC<Props> = ({
   setSelectedCategories,  // 選択状態を更新するための関数
   disabled = false,
 }) => {
-  const [categories, setCategories] = React.useState<Category[]>([])
+  const { token } = useSupabaseSession()
+  
+  // SWR でカテゴリー一覧を取得
+  const { data, error, isLoading } = useSWR(
+    token ? ["/api/admin/categories", token] : null,
+    ([url, token]) => fetcher(url, token)
+  )
+  
+  const categories = data?.categories || []
 
   // TODO 挙動が理解できていない
   const handleChange = (value: number[]) => {
@@ -26,21 +37,14 @@ export const CategoriesSelect: React.FC<Props> = ({
       }
 
       // IDが選択されていない場合は、追加
-      const category = categories.find((c) => c.id === v)
+      const category = categories.find((c: any) => c.id === v)
       if (!category) return
       setSelectedCategories([...selectedCategories, category])
     })
   }
 
-  useEffect(() => {
-    const fetcher = async () => {
-      const res = await fetch("/api/admin/categories")
-      const { categories } = await res.json()
-      setCategories(categories)
-    }
-
-    fetcher()
-  }, [])
+  if (isLoading) return <div>loading...</div>
+  if (error) return <div>エラーが発生しました。</div>
 
   return (
     <FormControl className="w-full">
@@ -58,7 +62,7 @@ export const CategoriesSelect: React.FC<Props> = ({
         </Box>
       )}
       >
-        {categories.map((category) => (
+        {categories.map((category: any) => (
           <MenuItem key={category.id} value={category.id}>
             {category.name}
           </MenuItem>

@@ -1,27 +1,36 @@
 'use client'
 
-import { FieldError, UseFormRegister, Path } from "react-hook-form";
+import { FieldError, Path } from "react-hook-form";
+import React from "react";
 import classes from "../../_styles/Textarea.module.css";
 import { ContactForm } from "../page";
 
 export type TextareaProps = {
-  id: Path<ContactForm>;
-  rows: any;
-  type: string;
-  register: UseFormRegister<ContactForm>;
-  disabled: boolean;
-  error?: FieldError;
-};
+  id: Path<ContactForm>
+  rows: number
+  disabled?: boolean
+  error?: FieldError
+  placeholder?: string
+} & React.TextareaHTMLAttributes<HTMLTextAreaElement>
 
-export const Textarea: React.FC<TextareaProps> = (props) => {
+export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>((props, ref) => {
+  const { id, rows, disabled, error, placeholder, ...textareaProps } = props
+
   return(
     <div className={classes.formContainer}>
-      <label htmlFor={props.id} className={classes.label}>本文</label>
+      <label htmlFor={id} className={classes.label}>本文</label>
       <div className={classes.inputContainer}>
-        <textarea id={props.id} rows={props.rows}
-          {...props.register(props.id)} disabled={props.disabled} className={classes.textarea}></textarea>
-        {props.error && <div className={classes.errorMessage}>{props.error.message}</div>}
+        <textarea
+          id={id} 
+          rows={rows}
+          disabled={disabled}
+          placeholder={placeholder}
+          className={classes.textarea}
+          ref={ref}
+          {...textareaProps} 
+        />
+        {error && <div className={classes.errorMessage}>{error.message}</div>}
       </div>
     </div>
   );
-}
+})

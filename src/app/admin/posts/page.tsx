@@ -1,47 +1,26 @@
 "use client"
 
+import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession"
 import { Post } from "@/app/_types/Post"
+import { fetcher } from "@/utils/fetcher"
 import Link from "next/link"
 
 import { useEffect, useState } from "react"
+import useSWR from "swr"
 
 export default function Page() {
-  const [posts, setPosts] = useState<Post[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { token } = useSupabaseSession()
 
+  // SWRを使用
+  const { data, error, isLoading } = useSWR(
+    token ? ["/api/admin/posts", token] : null,
+    ([url, token]) => fetcher(url, token)
+  )
 
-  useEffect(() => {
-    const fetcher = async () => {
-      try {
-        const res = await fetch("/api/admin/posts")
+  const posts = data?.posts || []
 
-        if (!res.ok) {
-          throw new Error("データが見つかりません。")
-        }
-        const { posts } = await res.json()
-        setPosts(posts)
-      } catch (e: any) {
-        setError(e.message)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    fetcher()
-  }, [])
-
-  if (isLoading) {
-    return <div>loading...</div>
-  }
-
-  if (error) {
-    return <div>{error}</div>
-  }
-
-  if (!posts) {
-    return <div>データが見つかりません。</div>
-  }
+  if (isLoading) return <div>loading...</div>
+  if (error) return <div>エラーが発生しました。</div>
 
   return (
     <div>
@@ -51,7 +30,7 @@ export default function Page() {
       </div>
       
       <div>
-        {posts.map((post) => {
+        {posts.map((post: Post) => {
           return (
             <Link href={`/admin/posts/${post.id}`} key={post.id}>
               <div className="border-b border-gray-300 p-4 hover:bg-gray-100 cursor-pointer">

@@ -4,8 +4,12 @@ import { hostname } from 'os';
 const nextConfig = {
   images: {
     remotePatterns: [
-      { protocol: 'https', hostname: 'placehold.jp' },
-      { protocol: 'https', hostname: 'images.microcms-assets.io'},
+      {
+        protocol: 'https',
+        hostname: 'qcjjqnkcqqmeouabtjkf.supabase.co',
+        port: '',
+        pathname: '/storage/v1/object/public/**',
+      },
     ],
   },
 }

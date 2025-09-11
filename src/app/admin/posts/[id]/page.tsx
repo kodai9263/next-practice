@@ -1,24 +1,50 @@
 "use client"
 
 import { Category } from "@/app/_types/Category"
-import { Post } from "@/app/_types/Post"
 import { useParams, useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { PostForm } from "../_components/PostForm"
+import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession"
+import useSWR from "swr"
+import { fetcher } from "@/utils/fetcher"
+import { PostCategory } from "@prisma/client"
+
+type FormValues = {
+  title: string;
+  content: string;
+  thumbnailImageKey: string;
+  categories: Category[];
+}
 
 export default function Page() {
   const [title, setTitle] = useState("")
   const [content, setContent] = useState("")
-  const [thumbnailUrl, setThumbnailUrl] = useState("")
+  const [thumbnailImageKey, setThumbnailImageKey] = useState("")
   const [categories, setCategories] = useState<Category[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { id } = useParams()
   const router = useRouter()
+  const { token } = useSupabaseSession()
+
+  // SWRを使用
+  const { data, error, isLoading } = useSWR(
+    id && token ? [`/api/admin/posts/${id}`, token] : null,
+    ([url, token]) => fetcher(url, token)
+  )
+
+  // データが取得できたら既存内容を設定
+  if (data?.post && title === "") {
+    setTitle(data.post.title)
+    setContent(data.post.content)
+    setThumbnailImageKey(data.post.thumbnailImageKey)
+    setCategories(data.postCategories.map((pc: PostCategory) => pc.categoryId))
+  }
 
   const handleSubmit = async (e:React.FormEvent) => {
     // 勝手にリロードされないようにする
     e.preventDefault()
     setIsSubmitting(true)
+    if (!token) return
   
     // PUTリクエストで記事を更新
     try {
@@ -26,8 +52,9 @@ export default function Page() {
         method: "PUT",
         headers: {
           "Content-Type": "application/json", // ← JSONデータであることを明示
+          Authorization: token,
         },
-        body: JSON.stringify({ title, content, thumbnailUrl, categories }),
+        body: JSON.stringify({ title, content, thumbnailImageKey, categories }),
       })
 
       if (!res.ok) {
@@ -67,20 +94,8 @@ export default function Page() {
     }
   }
 
-  // 更新の際に既存のデータを表示する
-  useEffect(() => {
-    const fetcher = async () => {
-      const res = await fetch(`/api/admin/posts/${id}`)
-      // TODO { post }: { post: Post } なぜこのような書き方になっているのか？
-      const { post }: { post: Post } = await res.json()
-      setTitle(post.title)
-      setContent(post.content)
-      setThumbnailUrl(post.thumbnailUrl)
-      setCategories(post.postCategories.map((pc) => pc.category))
-    }
-
-    fetcher()
-  }, [id])
+  if (isLoading) return <div>loading...</div>
+  if (error) return <div>エラーが発生しました。</div>
 
   return (
     <div className="container mx-auto px-4">
@@ -94,8 +109,8 @@ export default function Page() {
         setTitle={setTitle}
         content={content}
         setContent={setContent}
-        thumbnailUrl={thumbnailUrl}
-        setThumbnailUrl={setThumbnailUrl}
+        thumbnailImageKey={thumbnailImageKey}
+        setThumbnailImageKey={setThumbnailImageKey}
         categories={categories}
         setCategories={setCategories}
         onSubmit={handleSubmit}

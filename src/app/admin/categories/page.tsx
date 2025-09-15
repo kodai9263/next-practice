@@ -3,18 +3,14 @@
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession"
 import { Category } from "@/app/_types/Category"
 import Link from "next/link"
-import useSWR from "swr"
-import { fetcher } from "@/utils/fetcher"
+import { useFetch } from "@/app/_hooks/useFetch"
 
 export default function Page() {
   const { token } = useSupabaseSession()
 
-  // SWRを使用
-  const { data, error, isLoading } = useSWR(
-    token ? ["/api/admin/categories", token] : null,
-    ([url, token]) => fetcher(url, token)
-  )
-
+  // useFetchを使用
+  const { data, error, isLoading } = useFetch("/api/admin/categories")
+  
   const categories = data?.categories || []
 
   if (isLoading) return <div>loading...</div>

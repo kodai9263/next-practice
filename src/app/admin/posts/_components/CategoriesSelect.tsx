@@ -1,9 +1,8 @@
 import { Category } from "@/app/_types/Category";
 import { Box, Chip, FormControl, MenuItem, OutlinedInput, Select } from "@mui/material";
 import React from "react";
-import useSWR from "swr";
-import { fetcher } from "@/utils/fetcher";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
+import { useFetch } from "@/app/_hooks/useFetch";
 
 interface Props {
   selectedCategories: Category[]
@@ -18,11 +17,8 @@ export const CategoriesSelect: React.FC<Props> = ({
 }) => {
   const { token } = useSupabaseSession()
   
-  // SWR でカテゴリー一覧を取得
-  const { data, error, isLoading } = useSWR(
-    token ? ["/api/admin/categories", token] : null,
-    ([url, token]) => fetcher(url, token)
-  )
+  // useFetchを使用
+  const { data, error, isLoading } = useFetch("/api/admin/categories")
   
   const categories = data?.categories || []
 

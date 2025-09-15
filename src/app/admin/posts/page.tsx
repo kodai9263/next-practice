@@ -1,8 +1,8 @@
 "use client"
 
+import { useFetch } from "@/app/_hooks/useFetch"
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession"
 import { Post } from "@/app/_types/Post"
-import { fetcher } from "@/utils/fetcher"
 import Link from "next/link"
 
 import { useEffect, useState } from "react"
@@ -11,11 +11,8 @@ import useSWR from "swr"
 export default function Page() {
   const { token } = useSupabaseSession()
 
-  // SWRを使用
-  const { data, error, isLoading } = useSWR(
-    token ? ["/api/admin/posts", token] : null,
-    ([url, token]) => fetcher(url, token)
-  )
+  // useFetchを使用
+  const { data, error, isLoading } = useFetch("/api/admin/posts")
 
   const posts = data?.posts || []
 

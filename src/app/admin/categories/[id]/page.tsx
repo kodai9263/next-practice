@@ -1,11 +1,10 @@
 "use client"
 
 import { useParams, useRouter } from "next/navigation"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { CategoryForm } from "../_components/CategoryForm"
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession"
-import useSWR from "swr"
-import { fetcher } from "@/utils/fetcher"
+import { useFetch } from "@/app/_hooks/useFetch"
 
 export default function Page() {
   const [name, setName] = useState("")
@@ -14,16 +13,23 @@ export default function Page() {
   const router = useRouter()
   const { token } = useSupabaseSession()
 
-  // SWRを使用
-  const { data, error, isLoading } = useSWR(
-    id && token ? [`/api/admin/categories/${id}`, token] : null,
-    ([url, token]) => fetcher(url, token)
-  )
+  // useFetchを使用
+  const { data, error, isLoading } = useFetch(`/api/admin/categories/${id}`)
 
   // データが取得できたらnameを設定
-  if (data?.category && name === "") {
-    setName(data.category.name)
-  }
+  useEffect(() => {
+  if (!id || !token) return
+  ;(async () => {
+    try {
+      const res = await fetch(`/api/admin/categories/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (!res.ok) return
+      const json = await res.json()
+      if (json?.category?.name) setName(json.category.name)
+    } catch {}
+  })()
+}, [id, token, data?.category?.name])
 
   const handleSubmit = async (e:React.FormEvent) => {
     e.preventDefault()

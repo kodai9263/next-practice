@@ -2,12 +2,11 @@
 
 import { Category } from "@/app/_types/Category"
 import { useParams, useRouter } from "next/navigation"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { PostForm } from "../_components/PostForm"
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession"
-import useSWR from "swr"
-import { fetcher } from "@/utils/fetcher"
 import { PostCategory } from "@prisma/client"
+import { useFetch } from "@/app/_hooks/useFetch"
 
 type FormValues = {
   title: string;
@@ -26,19 +25,27 @@ export default function Page() {
   const router = useRouter()
   const { token } = useSupabaseSession()
 
-  // SWRを使用
-  const { data, error, isLoading } = useSWR(
-    id && token ? [`/api/admin/posts/${id}`, token] : null,
-    ([url, token]) => fetcher(url, token)
-  )
+  // useFetchを使用
+  const { data, error, isLoading } = useFetch(`/api/admin/posts/${id}`)
 
   // データが取得できたら既存内容を設定
-  if (data?.post && title === "") {
-    setTitle(data.post.title)
-    setContent(data.post.content)
-    setThumbnailImageKey(data.post.thumbnailImageKey)
-    setCategories(data.postCategories.map((pc: PostCategory) => pc.categoryId))
-  }
+  useEffect(() => {
+    if (!id || !token) return
+    ;(async () => {
+      try {
+        const res = await fetch(`/api/admin/posts/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (!res.ok) return
+        const json = await res.json()
+        if (json?.post?.title)
+        setTitle(json.post.title)
+        setContent(json.post.content)
+        setThumbnailImageKey(json.post.thumbnailImageKey)
+        setCategories(json.postCategories.map((pc: PostCategory) => pc.categoryId))
+      } catch {}
+      })()
+  }, [id, token, data?.post?.title, data?.post?.content, data?.post?.thumbnailImageKey, data?.postCategories])
 
   const handleSubmit = async (e:React.FormEvent) => {
     // 勝手にリロードされないようにする

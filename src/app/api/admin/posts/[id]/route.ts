@@ -1,3 +1,4 @@
+import { checkAuth } from "@/utils/auth";
 import { PrismaClient } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -7,6 +8,11 @@ export const GET = async (
   request: NextRequest,
   { params }: { params: { id: string } },
 ) => {
+
+  // 認証チェック
+  const authError = await checkAuth(request)
+  if (authError) return authError
+
   const { id } = params
 
   try {
@@ -40,7 +46,7 @@ interface UpdatePostRequestBody {
   title: string
   content: string
   categories: { id: number}[]
-  thumbnailUrl: string
+  thumbnailImageKey: string
 }
 
 // PUTという命名にすることで、PUTリクエストの時にこの関数が呼ばれる
@@ -48,11 +54,15 @@ export const PUT = async (
   request: NextRequest,
   { params }: { params: { id: string } }, // ここでリクエストパラメータを受け取る
 ) => {
+
+  const authError = await checkAuth(request)
+  if (authError) return authError
+
   // paramsの中にidが入っているので、それを取り出す
   const { id } = params
 
   // リクエストのbodyを取得
-  const { title, content, categories, thumbnailUrl }: UpdatePostRequestBody = await request.json()
+  const { title, content, categories, thumbnailImageKey }: UpdatePostRequestBody = await request.json()
 
   try {
     // idを指定して、Postを更新
@@ -63,14 +73,14 @@ export const PUT = async (
       data: {
         title,
         content,
-        thumbnailUrl,
+        thumbnailImageKey,
       },
     })
 
     // 一旦、記事とカテゴリーの中間テーブルのレコードを全て削除
     await prisma.postCategory.deleteMany({
       where: {
-        id: parseInt(id),
+        postId: parseInt(id),
       },
     })
 
@@ -98,6 +108,10 @@ export const DELETE = async (
   request: NextRequest,
   { params }: { params: { id: string } }, // ここでリクエストパラメータを受け取る
 ) => {
+
+  const authError = await checkAuth(request)
+  if (authError) return authError
+
   // paramsの中にidが入っているので、それを取り出す
   const { id } = params
 

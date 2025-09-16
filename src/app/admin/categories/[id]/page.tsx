@@ -1,20 +1,40 @@
 "use client"
 
-import { Category } from "@/app/_types/Category"
 import { useParams, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { CategoryForm } from "../_components/CategoryForm"
+import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession"
+import { useFetch } from "@/app/_hooks/useFetch"
 
 export default function Page() {
   const [name, setName] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { id } = useParams()
   const router = useRouter()
+  const { token } = useSupabaseSession()
+
+  // useFetchを使用
+  const { data, error, isLoading } = useFetch(`/api/admin/categories/${id}`)
+
+  // データが取得できたらnameを設定
+  useEffect(() => {
+  if (!id || !token) return
+  ;(async () => {
+    try {
+      const res = await fetch(`/api/admin/categories/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (!res.ok) return
+      const json = await res.json()
+      if (json?.category?.name) setName(json.category.name)
+    } catch {}
+  })()
+}, [id, token, data?.category?.name])
 
   const handleSubmit = async (e:React.FormEvent) => {
-    // 勝手にリロードされないようにする
     e.preventDefault()
     setIsSubmitting(true)
+    if (!token) return
 
     // PUTリクエストでカテゴリーを更新
     try {
@@ -22,6 +42,7 @@ export default function Page() {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          Authorization: token,
         },
         body: JSON.stringify({ name }),
       })
@@ -63,16 +84,8 @@ export default function Page() {
     }
   }
 
-  // 更新の際に既存のデータを表示する
-  useEffect(() => {
-    const fetcher = async () => {
-      const res = await fetch(`/api/admin/categories/${id}`)
-      const { category }: { category: Category} = await res.json()
-      setName(category.name)
-    }
-
-    fetcher()
-  }, [id])
+  if (isLoading) return <div>loading...</div>
+  if (error) return <div>エラーが発生しました。</div>
 
   return (
     <div className="container mx-auto px-4">

@@ -1,24 +1,57 @@
 "use client"
 
 import { Category } from "@/app/_types/Category"
-import { Post } from "@/app/_types/Post"
 import { useParams, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { PostForm } from "../_components/PostForm"
+import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession"
+import { PostCategory } from "@prisma/client"
+import { useFetch } from "@/app/_hooks/useFetch"
+
+type FormValues = {
+  title: string;
+  content: string;
+  thumbnailImageKey: string;
+  categories: Category[];
+}
 
 export default function Page() {
   const [title, setTitle] = useState("")
   const [content, setContent] = useState("")
-  const [thumbnailUrl, setThumbnailUrl] = useState("")
+  const [thumbnailImageKey, setThumbnailImageKey] = useState("")
   const [categories, setCategories] = useState<Category[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { id } = useParams()
   const router = useRouter()
+  const { token } = useSupabaseSession()
+
+  // useFetchを使用
+  const { data, error, isLoading } = useFetch(`/api/admin/posts/${id}`)
+
+  // データが取得できたら既存内容を設定
+  useEffect(() => {
+    if (!id || !token) return
+    ;(async () => {
+      try {
+        const res = await fetch(`/api/admin/posts/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (!res.ok) return
+        const json = await res.json()
+        if (json?.post?.title)
+        setTitle(json.post.title)
+        setContent(json.post.content)
+        setThumbnailImageKey(json.post.thumbnailImageKey)
+        setCategories(json.postCategories.map((pc: PostCategory) => pc.categoryId))
+      } catch {}
+      })()
+  }, [id, token, data?.post?.title, data?.post?.content, data?.post?.thumbnailImageKey, data?.postCategories])
 
   const handleSubmit = async (e:React.FormEvent) => {
     // 勝手にリロードされないようにする
     e.preventDefault()
     setIsSubmitting(true)
+    if (!token) return
   
     // PUTリクエストで記事を更新
     try {
@@ -26,8 +59,9 @@ export default function Page() {
         method: "PUT",
         headers: {
           "Content-Type": "application/json", // ← JSONデータであることを明示
+          Authorization: token,
         },
-        body: JSON.stringify({ title, content, thumbnailUrl, categories }),
+        body: JSON.stringify({ title, content, thumbnailImageKey, categories }),
       })
 
       if (!res.ok) {
@@ -67,20 +101,8 @@ export default function Page() {
     }
   }
 
-  // 更新の際に既存のデータを表示する
-  useEffect(() => {
-    const fetcher = async () => {
-      const res = await fetch(`/api/admin/posts/${id}`)
-      // TODO { post }: { post: Post } なぜこのような書き方になっているのか？
-      const { post }: { post: Post } = await res.json()
-      setTitle(post.title)
-      setContent(post.content)
-      setThumbnailUrl(post.thumbnailUrl)
-      setCategories(post.postCategories.map((pc) => pc.category))
-    }
-
-    fetcher()
-  }, [id])
+  if (isLoading) return <div>loading...</div>
+  if (error) return <div>エラーが発生しました。</div>
 
   return (
     <div className="container mx-auto px-4">
@@ -94,8 +116,8 @@ export default function Page() {
         setTitle={setTitle}
         content={content}
         setContent={setContent}
-        thumbnailUrl={thumbnailUrl}
-        setThumbnailUrl={setThumbnailUrl}
+        thumbnailImageKey={thumbnailImageKey}
+        setThumbnailImageKey={setThumbnailImageKey}
         categories={categories}
         setCategories={setCategories}
         onSubmit={handleSubmit}

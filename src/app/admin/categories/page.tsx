@@ -1,22 +1,20 @@
 "use client"
 
+import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession"
 import { Category } from "@/app/_types/Category"
 import Link from "next/link"
-import { useEffect, useState } from "react"
+import { useFetch } from "@/app/_hooks/useFetch"
 
 export default function Page() {
-  const [categories, setCategories] = useState<Category[]>([])
+  const { token } = useSupabaseSession()
 
+  // useFetchを使用
+  const { data, error, isLoading } = useFetch("/api/admin/categories")
+  
+  const categories = data?.categories || []
 
-  useEffect(() => {
-    const fetcher = async () => {
-      const res = await fetch("/api/admin/categories")
-      const { categories } = await res.json()
-      setCategories(categories)
-    }
-
-    fetcher()
-  }, [])
+  if (isLoading) return <div>loading...</div>
+  if (error) return <div>エラーが発生しました。</div>
 
   return (
     <div>
@@ -26,7 +24,7 @@ export default function Page() {
       </div>
 
       <div>
-        {categories.map((category) => {
+        {categories.map((category: Category) => {
           return (
             <Link href={`/admin/categories/${category.id}`} key={category.id}>
               <div className="border-b border-gray-300 p-4 hover:bg-gray-100 cursor-pointer">
